@@ -7,7 +7,7 @@ from datetime import datetime
 from sklearn.metrics import confusion_matrix
 from sklearn.externals import joblib
 from myfuncs import *
-from rbfn import RBFN
+from neuralnetwork import neuralnetwork
 
 ###############################
 print "init of data loading"
@@ -87,27 +87,37 @@ imbalance_ratio2 = float(neg_class_tot) / float(pos_class_tot);
 print "positive class: ", pos_class_tot, " | negative class: ", neg_class_tot, " | imbalance ratio1: ", imbalance_ratio1, " | imbalance ratio2: ", imbalance_ratio2
 print "end min-max normalization"
 ###############################
-myrbfn_path="./rbfn_model.dat";
-#for training and saving the model
-#np.ceil(np.sqrt(xttest1.shape[0])).astype(int)
-#model = RBFN(hidden_n = 10, output_n = 2, t_sigmas=0, n_centers=2)
-#model.train(xttrain,yttrain,myrbfn_path);
-#for loading the prevously trained model
-model = joblib.load(myrbfn_path)
+mymodel_path="./neural_network_model.dat";#general data
+mymodelTF_path="./neural_network_modelTF.dat";#tensorflow data
 
-yttest1_pred  = model.predict(xttest1)
+#for training and saving the model
+nclasses = 2
+nfeatures = xttrain.shape[1]
+hidden_layer1_nodes = np.ceil(np.sqrt( (nclasses+2 )*nfeatures)+2*np.sqrt(nfeatures/(nclasses+2 ))).astype(int)
+hidden_layer2_nodes = np.ceil(np.sqrt( (nclasses+2 )*nfeatures)+2*np.sqrt(nfeatures/(nclasses+2 ))).astype(int)
+myepochs=1000
+myinterval=50
+model = neuralnetwork(hidden1_n=hidden_layer1_nodes, hidden2_n=hidden_layer2_nodes, output_n=nclasses, epoch=myepochs, interval=myinterval)
+model.train(xttrain,yttrain,mymodel_path,mymodelTF_path)
+#for loading the prevously trained model
+model = joblib.load(mymodel_path)
+
+
+yttest1_pred  = model.predict(xttest1,mymodelTF_path)
 cnf_matrix1 = confusion_matrix(yttest1[:,0], yttest1_pred['class'][:,0])
 tn1, fp1, fn1, tp1 = cnf_matrix1.ravel()
 berrors1 = berror_metrics(tn1, fp1, fn1, tp1)
 #print "for test data 1"
 #print "acc", berrors1['acc'], "sen ", berrors1['sen'], "spe ", berrors1['spe'], "auc ", berrors1['auc'], "mcc ", berrors1['mcc']
 
-yttest2_pred = model.predict(xttest2)
+yttest2_pred = model.predict(xttest2,mymodelTF_path)
 cnf_matrix2 = confusion_matrix(yttest2, yttest2_pred['class'])
 tn2, fp2, fn2, tp2 = cnf_matrix2.ravel()
 berrors2 = berror_metrics(tn2, fp2, fn2, tp2)
 #print "for test data 2"
 #print "acc", berrors2['acc'], "sen ", berrors2['sen'], "spe ", berrors2['spe'], "auc ", berrors2['auc'], "mcc ", berrors2['mcc']
+
+
 accs_ = np.zeros((2,1))
 accs_[0,0] = berrors1["acc"]
 accs_[1,0] = berrors2["acc"]
@@ -127,8 +137,8 @@ mccs_ = np.zeros((2,1))
 mccs_[0,0] = berrors1["mcc"]
 mccs_[1,0] = berrors2["mcc"]
 print "Classifier metric: mean ± standard deviation"
-print "RBFN error: ", accs_.mean(), "±", np.std(accs_)
-print "RBFN sens: ", senss_.mean(), "±", np.std(senss_)
-print "RBFN spec: ", specs_.mean(), "±", np.std(specs_)
-print "RBFN auc: ", aucs_.mean(), "±", np.std(aucs_)
-print "RBFN mcc: ", mccs_.mean(), "±", np.std(mccs_)
+print "NeuralNetwork error: ", accs_.mean(), "±", np.std(accs_)
+print "NeuralNetwork sens: ", senss_.mean(), "±", np.std(senss_)
+print "NeuralNetwork spec: ", specs_.mean(), "±", np.std(specs_)
+print "NeuralNetwork auc: ", aucs_.mean(), "±", np.std(aucs_)
+print "NeuralNetwork mcc: ", mccs_.mean(), "±", np.std(mccs_)
