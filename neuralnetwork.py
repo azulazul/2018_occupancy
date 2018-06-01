@@ -6,7 +6,7 @@ from sklearn.externals import joblib
 class neuralnetwork(object):
 
     def __init__(self, hidden1_n, hidden2_n, output_n, epoch, interval):
-        """ radial basis function network with k-means and SVD
+        """ Neural network with two hidden layers and GradientDescentOptimizer
         #
             hidden1_n: number of neurons in the first hidden layer
             hidden2_n: number of neurons in the second hidden layer
@@ -140,7 +140,7 @@ class neuralnetwork(object):
 
         #print "samples: ", nsamples
         #print "axis: ", myaxis
-        #print "classes: ", self.output_n        
+        #print "classes: ", self.output_n
         mytest_or = sess.run(final_output, feed_dict={X_data: mytest})
         sess.close()
 
